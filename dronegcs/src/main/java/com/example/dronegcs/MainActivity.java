@@ -3,15 +3,12 @@ package com.example.dronegcs;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 
-import android.graphics.PointF;
-import android.location.LocationListener;
+import android.graphics.Color;
 import android.location.LocationManager;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AlertDialog;
@@ -20,8 +17,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,21 +28,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.naver.maps.geometry.LatLng;
-import com.naver.maps.geometry.LatLngBounds;
-import com.naver.maps.map.CameraPosition;
 import com.naver.maps.map.CameraUpdate;
 import com.naver.maps.map.LocationSource;
 import com.naver.maps.map.LocationTrackingMode;
-import com.naver.maps.map.MapView;
-import com.naver.maps.map.overlay.InfoWindow;
 import com.naver.maps.map.overlay.LocationOverlay;
 import com.naver.maps.map.overlay.Marker;
 import com.naver.maps.map.overlay.OverlayImage;
 import com.naver.maps.map.overlay.PathOverlay;
-import com.naver.maps.map.overlay.PolygonOverlay;
 import com.o3dr.android.client.apis.ControlApi;
 import com.o3dr.android.client.apis.VehicleApi;
-import com.o3dr.android.client.apis.solo.SoloCameraApi;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.LinkListener;
 import com.o3dr.android.client.interfaces.TowerListener;
@@ -56,14 +47,11 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.companion.solo.SoloAttributes;
 import com.o3dr.services.android.lib.drone.companion.solo.SoloState;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
-import com.o3dr.services.android.lib.drone.connection.ConnectionType;
-import com.o3dr.services.android.lib.drone.mission.item.command.YawCondition;
 import com.o3dr.services.android.lib.drone.property.Altitude;
 import com.o3dr.services.android.lib.drone.property.Attitude;
 import com.o3dr.services.android.lib.drone.property.Battery;
 import com.o3dr.services.android.lib.drone.property.Gps;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
-import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.Speed;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.Type;
@@ -71,7 +59,6 @@ import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.naver.maps.map.MapFragment;
 import com.naver.maps.map.NaverMap;
 import com.naver.maps.map.OnMapReadyCallback;
-import com.naver.maps.map.NaverMapSdk;
 import com.naver.maps.map.util.FusedLocationSource;
 import com.o3dr.android.client.ControlTower;
 import com.o3dr.android.client.Drone;
@@ -86,6 +73,7 @@ import org.droidplanner.services.android.impl.core.survey.grid.CircumscribedGrid
 import org.droidplanner.services.android.impl.core.survey.grid.Trimmer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -139,6 +127,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int capacity = 0;
     private double sprayAngle;
 
+    //Mission
+    public ArrayList<LatLng> stationPointList = new ArrayList<LatLng>();
+
 
     @Nullable
     private LocationManager locationManager;
@@ -150,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN); // 핸드폰 맨위 시간, 안테나 타이틀 없애기
 
         final Context context = getApplicationContext();
         this.controlTower = new ControlTower(context);
@@ -243,11 +235,144 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLong latlong = new LatLong(latLng.latitude,latLng.longitude);
             polygonMission(latlong);
             abMission(latlong);
+
         });
 
     }
+
+    // ######################################################################################################임무수행###########################################################################################################
+   public void GoMission(){
+       Gps droneGps = this.drone.getAttribute(AttributeType.GPS);
+       //LatLng droneLocation = new LatLng(droneGps.getPosition().getLatitude(),droneGps.getPosition().getLongitude());
+
+       LocationOverlay stationMaker = mymap.getLocationOverlay();
+       stationMaker.setVisible(true);
+
+
+
+       //스테이션 좌표/위치 오버레이-------------------------------------------------오버레이는 하나만 가능, 여러개 일시 마지막 코드만 실행
+       LatLng stationPointM = new LatLng(35.942293, 126.683031);
+       LatLng stationPoint1 = new LatLng(35.942305, 126.682317);
+       LatLng stationPoint2 = new LatLng(35.941884, 126.682273);
+       LatLng stationPoint3 = new LatLng(35.941861, 126.683013);
+
+       stationMaker.setPosition(new LatLng(35.942293, 126.683031));
+       stationMaker.setIcon(OverlayImage.fromResource(R.drawable.station));
+
+       stationPointList.add(stationPointM); //좌표를 arrayList에 넣는다.
+       stationPointList.add(stationPoint1);
+       stationPointList.add(stationPoint2);
+       stationPointList.add(stationPoint3);
+
+       //스테이션 경로
+       dronepath.setCoords(Arrays.asList(
+               new LatLng(35.942293, 126.683031),
+               new LatLng(35.942305, 126.682317),
+               new LatLng(35.941884, 126.682273),
+               new LatLng(35.941861, 126.683013),
+               new LatLng(35.942293, 126.683031)
+       ));
+       dronepath.setPatternImage(OverlayImage.fromResource(R.drawable.arrow));
+       dronepath.setPatternInterval(70);
+
+       dronepath.setWidth(40);
+       dronepath.setOutlineWidth(10);
+       dronepath.setOutlineColor(Color.WHITE);
+
+       dronepath.setMap(mymap);
+/*
+       //드론버스 이동 및 착륙&이륙 알고리즘
+       AlertDialog.Builder Message = new AlertDialog.Builder(MainActivity.this);
+       Message.setTitle("비행버스 임무 수행").setMessage("확인하시면 가이드모드 전환후 기체가 이동합니다.").setCancelable(false).setPositiveButton("확인", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               // Action for 'Yes' Button
+               VehicleApi.getApi(drone).setVehicleMode(VehicleMode.COPTER_Guide,
+                       new AbstractCommandListener() {
+                           @Override
+                           public void onSuccess() {
+                               ControlApi.getApi(drone).goTo(stationPointM, true, null);
+                               if(stationPointList.size() == 4) {
+                                   if(droneLocation == stationPointM) {
+                                       ControlApi.getApi(drone).goTo(stationPoint1, true, null);
+//                                       if(사람이 존재하면){
+//                                       LandAndArming();
+//                                       reTakeoff();
+//                                   }
+                               }else if(droneLocation == stationPoint1){
+                                       ControlApi.getApi(drone).goTo(stationPoint2, true, null);
+                                       LandAndArming();
+                                       reTakeoff();
+                               }else if(droneLocation == stationPoint2){
+                                       ControlApi.getApi(drone).goTo(stationPoint3, true, null);
+                                       LandAndArming();
+                                       reTakeoff();
+                               }else if(droneLocation == stationPoint3){
+                                       ControlApi.getApi(drone).goTo(stationPointM, true, null);
+                                       LandAndArming();
+                                       reTakeoff();
+                                   }
+                               }
+                           }
+                           @Override
+                           public void onError(int i) {
+
+                           }
+                           @Override
+                           public void onTimeout() {
+                           }
+                       });
+           }
+       }).setNegativeButton("취소", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               dialog.cancel();
+
+           }
+       });
+       AlertDialog alert = Message.create();
+       // Title for AlertDialog
+       alert.setTitle("Title");
+       // Icon for AlertDialog
+
+       alert.show();
+   }
+
+   public void LandAndArming(){
+       VehicleApi.getApi(drone).setVehicleMode(VehicleMode.COPTER_LAND,
+               new AbstractCommandListener() {
+                   @Override
+                   public void onSuccess() {
+                       alertUser("착륙 중...");
+
+                       new Handler().postDelayed(new Runnable() {
+                           @Override
+                           public void run() {
+                               alertMessage(); //Arming
+                           }
+                       }, 5000); // 5초 지연을 준 후 시작
+
+                   }
+                   @Override
+                   public void onError(int executionError) {
+                       alertUser("착륙 실패 : " + executionError);
+                   }
+                   @Override
+                   public void onTimeout() {
+                   }
+               });
+   }
+
+    public void reTakeoff(){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                takeoffAlert(); //이륙
+            }
+        }, 3000); // 3초 지연을 준 후 시작
+    */}
+    // ########################################################################################################################################################################################################################
+
 //drawpolygon
-//manageoverlay
+//임무 오버레이 알고리즘
     public void polygonMission(LatLong latLong){
         if(mission[1]==true){
             mission[0] = false;
@@ -712,16 +837,20 @@ public void addPolygonPoint(LatLong latLong) {
             Log.d("GPSERROR1",""+droneposition.latitude);
             this.locationOverlay = mymap.getLocationOverlay();
             locationOverlay.setVisible(true);
-            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.gcsmarker));
+            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.bus));
+            locationOverlay.setSubIcon(
+                    OverlayImage.fromResource(R.drawable.sort));
             locationOverlay.setPosition(droneposition);
             if(mapfollow)
                 mymap.moveCamera(CameraUpdate.scrollTo(droneposition));
         }catch(NullPointerException e){
             Log.d("GPSERROR","GPS POSITION NULL");
-           // locationOverlay = mymap.getLocationOverlay();
+            locationOverlay = mymap.getLocationOverlay();
             this.locationOverlay = mymap.getLocationOverlay();
             locationOverlay.setVisible(true);
-            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.gcsmarker));
+            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.bus));
+            locationOverlay.setSubIcon(
+                    OverlayImage.fromResource(R.drawable.sort));
             locationOverlay.setPosition(new LatLng(35.945378,126.682110));
             //locationOverlay.setAnchor(new PointF((float)0.5,(float)0.5));
             if(mapfollow)
@@ -911,13 +1040,27 @@ public void addPolygonPoint(LatLong latLong) {
                 resetMarker();
                 polygonPointList.clear();
                 missionClear();
+
+                LinearLayout missiondrawlist1 = (LinearLayout)findViewById(R.id.missiondrawer);
+                missiondrawlist1.setVisibility(View.INVISIBLE);
                 break;
             case R.id.PolygonMission:
                 mission[1] = true;
 
+                LinearLayout missiondrawlist2 = (LinearLayout)findViewById(R.id.missiondrawer);
+                missiondrawlist2.setVisibility(View.INVISIBLE);
                 break;
             case R.id.ABMission:
                 mission[0] = true;
+
+                LinearLayout missiondrawlist3 = (LinearLayout)findViewById(R.id.missiondrawer);
+                missiondrawlist3.setVisibility(View.INVISIBLE);
+                break;
+            case R.id.PerformMission:
+                GoMission();
+
+                LinearLayout missiondrawlist4 = (LinearLayout)findViewById(R.id.missiondrawer);
+                missiondrawlist4.setVisibility(View.INVISIBLE);
                 break;
         }
     }
@@ -1132,6 +1275,9 @@ public void addPolygonPoint(LatLong latLong) {
             return target.distanceTo(recentLatLng) <= 1;
         }
     }
+    // #################################### 임무수행 ####################################
+
+
 }
 
 

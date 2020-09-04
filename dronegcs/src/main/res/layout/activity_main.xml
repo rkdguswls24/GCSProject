@@ -13,10 +13,10 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="1.0" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -393,37 +393,51 @@
 
     <LinearLayout
         android:id="@+id/missiondrawer"
-        android:layout_width="60dp"
-        android:layout_height="128dp"
-        android:layout_marginTop="4dp"
+        android:layout_width="79dp"
+        android:layout_height="244dp"
         android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@+id/takeoffsetlist"
-        app:layout_constraintStart_toStartOf="@+id/mission"
-        app:layout_constraintTop_toBottomOf="@+id/mission">
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="@+id/map"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        android:background="#FFFFFF">
 
         <Button
             android:id="@+id/nomission"
-            android:layout_width="60dp"
-            android:layout_height="41dp"
-            android:text="none"
+            android:layout_width="70dp"
+            android:layout_height="51dp"
+            android:layout_margin="5dp"
             android:onClick="btn_event"
-            android:textSize="4pt" />
+            android:text="clear"
+            android:textSize="5pt"
+            />
 
         <Button
             android:id="@+id/PolygonMission"
-            android:layout_width="60dp"
-            android:layout_height="41dp"
-            android:text="다각형"
+            android:layout_width="70dp"
+            android:layout_height="51dp"
+            android:layout_margin="5dp"
             android:onClick="btn_event"
-            android:textSize="4pt" />
+            android:text="다각형"
+            android:textSize="6pt" />
+
         <Button
             android:id="@+id/ABMission"
-            android:layout_width="60dp"
-            android:layout_height="41dp"
-            android:text="AB"
+            android:layout_width="70dp"
+            android:layout_height="51dp"
+            android:layout_margin="5dp"
             android:onClick="btn_event"
-            android:textSize="4pt" />
-    </LinearLayout>
+            android:text="AB"
+            android:textSize="7pt" />
 
+        <Button
+            android:id="@+id/PerformMission"
+            android:layout_width="72dp"
+            android:layout_height="51dp"
+            android:layout_margin="5dp"
+            android:onClick="btn_event"
+            android:text="임무수행"
+            android:textSize="5pt" />
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
