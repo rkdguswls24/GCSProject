@@ -334,32 +334,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
    }
 /*
    public void Landing_TakeOff(){
-       fallAltitude();
-       new Handler().postDelayed(new Runnable() {
-           @Override
-           public void run() {
-               riseAltitude();
-           }
-       }, 5000); // 3초 지연을 준 후 시작
+       ControlApi.getApi(this.drone).climbTo(0);
+
+       try{
+           Thread.sleep(5000);
+           //wait for onboard signal
+
+       }catch(InterruptedException e){
+           alertUser("sleep denied");
+           ControlApi.getApi(this.drone).climbTo(dronealtitude);
+       }
+       ControlApi.getApi(this.drone).climbTo(dronealtitude);
    }
-
-    //기체 상승/하강 기능
-    public void riseAltitude() {
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-        Altitude currentAltitude = this.drone.getAttribute(AttributeType.ALTITUDE);
-        if (vehicleState.isFlying()) {
-            ControlApi.getApi(this.drone).climbTo(currentAltitude.getAltitude() + 4.5);
-        }
-    }
-
-    public void fallAltitude() {
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-        Altitude currentAltitude = this.drone.getAttribute(AttributeType.ALTITUDE);
-        if (vehicleState.isFlying()) {
-            if (currentAltitude.getAltitude() > 0)
-                ControlApi.getApi(this.drone).climbTo(currentAltitude.getAltitude() - 4.5);
-        }
-    }
 
     public  void StopMission() {
         final Button BtnSendMission = (Button) findViewById(R.id.stopMission);
