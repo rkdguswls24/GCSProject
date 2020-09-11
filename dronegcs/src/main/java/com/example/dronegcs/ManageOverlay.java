@@ -7,12 +7,14 @@ import com.naver.maps.geometry.LatLng;
 import com.naver.maps.map.NaverMap;
 import com.naver.maps.map.overlay.InfoWindow;
 import com.naver.maps.map.overlay.Marker;
+import com.naver.maps.map.overlay.OverlayImage;
 import com.naver.maps.map.overlay.PathOverlay;
 import com.naver.maps.map.overlay.PolygonOverlay;
 import com.naver.maps.map.overlay.PolylineOverlay;
 import com.o3dr.services.android.lib.coordinate.LatLong;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ManageOverlay {
     private NaverMap mymap;
@@ -20,8 +22,11 @@ public class ManageOverlay {
     private ArrayList<Marker> markerlist = new ArrayList<>();
     private ArrayList<Marker> spraymakers = new ArrayList<>();
     private ArrayList<LatLng> spraypointlist = new ArrayList<>();
-
-
+    //스테이션 Marker 및 경로 Ovelay
+    Marker stationMarkerM = new Marker();
+    Marker stationMarker1 = new Marker();
+    Marker stationMarker2 = new Marker();
+    Marker stationMarker3 = new Marker();
 
 
     private PathOverlay pathline = new PathOverlay();
@@ -29,6 +34,7 @@ public class ManageOverlay {
     private PolygonOverlay polygon = new PolygonOverlay();
     private ArrayList<Marker> boundlist = new ArrayList<>();
     protected MainActivity mainactivity;
+
     public ManageOverlay(NaverMap mymap,MainActivity mainactivity)
     {
         this.mainactivity = mainactivity;
@@ -111,7 +117,30 @@ public class ManageOverlay {
         polygon.setMap(null);
         ppointlist.clear();
         spraypointlist.clear();
+    }
 
+    public void stationMarker(){
+        stationMarkerM.setPosition(new LatLng(35.942293, 126.683031));  //스테이션 Marker
+        stationMarker1.setPosition(new LatLng(35.942305, 126.682317));
+        stationMarker2.setPosition(new LatLng(35.941884, 126.682273));
+        stationMarker3.setPosition(new LatLng(35.941861, 126.683013));
 
+        stationMarkerM.setIcon(OverlayImage.fromResource(R.drawable.station));            //오버레이는 하나만 가능, 여러개 일시 마지막 코드만 실행
+        stationMarker1.setIcon(OverlayImage.fromResource(R.drawable.stop));
+        stationMarker2.setIcon(OverlayImage.fromResource(R.drawable.stop));
+        stationMarker3.setIcon(OverlayImage.fromResource(R.drawable.stop));
+
+        stationMarkerM.setMap(mymap);
+        stationMarker1.setMap(mymap);
+        stationMarker2.setMap(mymap);
+        stationMarker3.setMap(mymap);
+
+    }
+
+    public void resetMarker(){
+        stationMarkerM.setMap(null);
+        stationMarker1.setMap(null);
+        stationMarker2.setMap(null);
+        stationMarker3.setMap(null);
     }
 }

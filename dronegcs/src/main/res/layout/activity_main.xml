@@ -367,9 +367,9 @@
         app:layout_constraintVertical_bias="0.914" />
 
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="225dp"
         android:layout_height="98dp"
-        android:id="@+id/recycler_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.031"
@@ -381,9 +381,9 @@
         android:id="@+id/mission"
         android:layout_width="60dp"
         android:layout_height="41dp"
+        android:onClick="btn_event"
         android:text="임무"
         android:textSize="4pt"
-        android:onClick="btn_event"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/takeoffset"
         app:layout_constraintHorizontal_bias="1.0"
@@ -392,15 +392,45 @@
         app:layout_constraintVertical_bias="0.086" />
 
     <LinearLayout
+        android:id="@+id/missionContent"
+        android:layout_width="60dp"
+        android:layout_height="85dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="@id/takeoffset"
+        app:layout_constraintHorizontal_bias="0.908"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/takeoffset"
+        app:layout_constraintVertical_bias="0.015">
+
+        <Button
+            android:id="@+id/stopMission"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:onClick="btn_event"
+            android:text="임무중지"
+            android:textSize="4pt" />
+
+        <Button
+            android:id="@+id/endMission"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:onClick="btn_event"
+            android:text="임무종료"
+            android:textSize="4pt" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/missiondrawer"
         android:layout_width="79dp"
         android:layout_height="244dp"
+        android:background="#FFFFFF"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintEnd_toEndOf="@+id/map"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/map"
-        android:background="#FFFFFF">
+        app:layout_constraintTop_toTopOf="@+id/map">
 
         <Button
             android:id="@+id/nomission"
@@ -409,8 +439,7 @@
             android:layout_margin="5dp"
             android:onClick="btn_event"
             android:text="clear"
-            android:textSize="5pt"
-            />
+            android:textSize="5pt" />
 
         <Button
             android:id="@+id/PolygonMission"
