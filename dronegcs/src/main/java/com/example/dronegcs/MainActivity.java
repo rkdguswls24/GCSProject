@@ -243,15 +243,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // ############################################################################################임무수행###########################################################################################################
     public void GoMission(){
-       //Gps droneGps = this.drone.getAttribute(AttributeType.GPS);
-       //LatLong droneLocation = new LatLong(droneGps.getPosition().getLatitude(),droneGps.getPosition().getLongitude());
-       //alertUser("드론 경도:" + droneLocation.getLatitude() + "드론 위도" + droneLocation.getLongitude());
+       State vehicleState = this.drone.getAttribute(AttributeType.STATE);
+       Gps droneGps = this.drone.getAttribute(AttributeType.GPS);
+       LatLong droneLocation = new LatLong(droneGps.getPosition().getLatitude(),droneGps.getPosition().getLongitude());
+       alertUser("드론 경도:" + droneLocation.getLatitude() + "드론 위도" + droneLocation.getLongitude());
 
        //스테이션 좌표 설정
-       LatLong stationPointM = new LatLong(35.942293, 126.683031);   //스테이션 좌표
-       LatLong stationPoint1 = new LatLong(35.942305, 126.682317);
-       LatLong stationPoint2 = new LatLong(35.941884, 126.682273);
-       LatLong stationPoint3 = new LatLong(35.941861, 126.683013);
+       LatLong stationPointM = new LatLong(35.942197, 126.678888);   //스테이션 좌표
+       LatLong stationPoint1 = new LatLong(35.942087, 126.678860);
+       LatLong stationPoint2 = new LatLong(35.942072, 126.678933);
+       LatLong stationPoint3 = new LatLong(35.942173, 126.678978);
 
        stationPointList.add(stationPointM); //좌표를 arrayList에 넣는다.
        stationPointList.add(stationPoint1);
@@ -261,11 +262,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
        manageOverlays.stationMarker();
 
         dronepath.setCoords(Arrays.asList(   //스테이션 경로
-                new LatLng(35.942293, 126.683031),
-                new LatLng(35.942305, 126.682317),
-                new LatLng(35.941884, 126.682273),
-                new LatLng(35.941861, 126.683013),
-                new LatLng(35.942293, 126.683031)
+                new LatLng(35.942197, 126.678888),
+                new LatLng(35.942087, 126.678860),
+                new LatLng(35.942072, 126.678933),
+                new LatLng(35.942173, 126.678978),
+                new LatLng(35.942197, 126.678888)
         ));
 
         dronepath.setPatternImage(OverlayImage.fromResource(R.drawable.arrow));
@@ -276,10 +277,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dronepath.setOutlineColor(Color.TRANSPARENT);
 
         dronepath.setMap(mymap);
+        alertUser("기지국 확인:" + stationPointList.get(0).getLatitude());
 
-/*
        //드론버스 이동 및 착륙&이륙 알고리즘
-       if(dronestate){
+       if(vehicleState.isFlying()){
            AlertDialog.Builder Message = new AlertDialog.Builder(MainActivity.this);
            Message.setTitle("비행버스 임무 수행").setMessage("확인하시면 가이드모드 전환후 기체가 이동합니다.").setPositiveButton("확인", new DialogInterface.OnClickListener() {
                public void onClick(DialogInterface dialog, int id) {
@@ -288,20 +289,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                            new AbstractCommandListener() {
                                @Override
                                public void onSuccess() {
+
+                                   alertUser("가이드 모드로 전환완료");
+                                   alertUser("드론 경도:" + droneLocation.getLatitude() + "드론 위도" + droneLocation.getLongitude());
+                                   alertUser("스테이션 수:" + stationPointList.size());
+                                   alertUser("스테이션M 좌표:" + stationPointList.get(0).getLatitude());
+                                   alertUser("스테이션1 좌표:" + stationPointList.get(1).getLatitude());
+                                   alertUser("스테이션2 좌표:" + stationPointList.get(2).getLatitude());
+                                   alertUser("스테이션3 좌표:" + stationPointList.get(3).getLatitude());
+
                                    ControlApi.getApi(drone).goTo(stationPointM, true, null);
-                                   if (stationPointList.size() == 4) {
+                                   alertUser("메인 스테이션으로 이동");
+
+                                   if (stationPointList.size() >= 4) {
+                                       alertUser("자율 주행 준비 완료");
                                        if (droneLocation == stationPointM) {
+                                           alertUser("메인 스테이션 도착, 스테이션1로 이동");
                                            ControlApi.getApi(drone).goTo(stationPoint1, true, null);
                                            //if(사람이 존재하면){
                                            //Landing_TakeOff();
                                            //}
                                        } else if (droneLocation == stationPoint1) {
+                                           alertUser("스테이션1 도착, 스테이션2로 이동");
                                            ControlApi.getApi(drone).goTo(stationPoint2, true, null);
                                            //Landing_TakeOff();
                                        } else if (droneLocation == stationPoint2) {
+                                           alertUser("스테이션2 도착, 스테이션3으로 이동");
                                            ControlApi.getApi(drone).goTo(stationPoint3, true, null);
                                            //Landing_TakeOff();
                                        } else if (droneLocation == stationPoint3) {
+                                           alertUser("스테이션3 도착, 메인 스테이션으로 이동");
                                            ControlApi.getApi(drone).goTo(stationPointM, true, null);
                                            //Landing_TakeOff();
                                        }
@@ -330,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
            // Icon for AlertDialog
 
            alert.show();
-       }*/
+       }
    }
 /*
    public void Landing_TakeOff(){
@@ -345,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
            ControlApi.getApi(this.drone).climbTo(dronealtitude);
        }
        ControlApi.getApi(this.drone).climbTo(dronealtitude);
-   }
+   }*/
 
     public  void StopMission() {
         final Button BtnSendMission = (Button) findViewById(R.id.stopMission);
@@ -392,8 +409,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public  void EndMission(){
+        VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LOITER, new AbstractCommandListener() {
+            @Override
+            public void onSuccess() {
+                alertUser("임무를 종료합니다.");
+                stationPointList.clear();
+                manageOverlays.resetMarker();
+                dronepath.setMap(null);
+            }
 
-    }*/
+            @Override
+            public void onError(int executionError) {
+                alertUser("임무종료 실패 : " + executionError);
+            }
+
+            @Override
+            public void onTimeout() {
+
+            }
+        });
+    }
     // ########################################################################################### 드론 ###############################################################################################
     //드론 위치 오버레이
     protected void updatetrack(){
@@ -404,7 +439,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d("GPSERROR1",""+droneposition.latitude);
             this.locationOverlay = mymap.getLocationOverlay();
             locationOverlay.setVisible(true);
-            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.bus));
+            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.gcsmarker));
             locationOverlay.setPosition(droneposition);
             if(mapfollow)
                 mymap.moveCamera(CameraUpdate.scrollTo(droneposition));
@@ -413,7 +448,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationOverlay = mymap.getLocationOverlay();
             this.locationOverlay = mymap.getLocationOverlay();
             locationOverlay.setVisible(true);
-            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.bus));
+            locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.gcsmarker));
             locationOverlay.setPosition(new LatLng(35.945378,126.682110));
             //locationOverlay.setAnchor(new PointF((float)0.5,(float)0.5));
             if(mapfollow)
@@ -474,7 +509,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onStart() {
         super.onStart();
         this.controlTower.connect((TowerListener) this);
-
     }
     @Override
     public void onStop() {
@@ -486,7 +520,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         this.controlTower.unregisterDrone(this.drone);
         this.controlTower.disconnect();
-
     }
 
     protected void updateConnectedButton(Boolean isConnected) {
@@ -509,7 +542,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ConnectionParameter connectionParams = ConnectionParameter.newUdpConnection(null);
             this.drone.connect(connectionParams);
         }
-
     }
     //Arming
     public void alertMessage(){
@@ -990,13 +1022,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 missionContent1.setVisibility(View.VISIBLE);
                 break;
             case R.id.stopMission:
-                //StopMission();
+                StopMission();
                 break;
             case R.id.endMission:
-                //EndMission();
-                stationPointList.clear();
-                manageOverlays.resetMarker();
-                dronepath.setMap(null);
+                EndMission();
+
                 LinearLayout missionContent2 = (LinearLayout)findViewById(R.id.missionContent);
                 missionContent2.setVisibility(View.INVISIBLE);
                 break;
@@ -1053,7 +1083,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //guidemode
     public boolean mydronestate(){
         State vehiclestate = this.drone.getAttribute(AttributeType.STATE);
-        if(vehiclestate.isArmed())
+        if(vehiclestate.isFlying())
             return true;
         else
             return false;
