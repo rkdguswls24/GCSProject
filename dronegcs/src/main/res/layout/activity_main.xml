@@ -13,10 +13,10 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -154,6 +154,23 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1">
 
+
+        <Button
+            android:id="@+id/startmission"
+            android:layout_width="match_parent"
+            android:layout_height="41dp"
+
+            android:textSize="4pt"
+            android:text="임무시작"
+            />
+        <Button
+            android:id="@+id/sendmission"
+            android:layout_width="match_parent"
+            android:layout_height="41dp"
+
+            android:textSize="4pt"
+            android:text="임무전송"
+            />
         <Button
             android:id="@+id/land"
             android:layout_width="match_parent"
@@ -367,9 +384,9 @@
         app:layout_constraintVertical_bias="0.914" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
         android:layout_width="225dp"
         android:layout_height="98dp"
+        android:id="@+id/recycler_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.031"
@@ -381,9 +398,9 @@
         android:id="@+id/mission"
         android:layout_width="60dp"
         android:layout_height="41dp"
-        android:onClick="btn_event"
         android:text="임무"
         android:textSize="4pt"
+        android:onClick="btn_event"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/takeoffset"
         app:layout_constraintHorizontal_bias="1.0"
@@ -392,81 +409,43 @@
         app:layout_constraintVertical_bias="0.086" />
 
     <LinearLayout
-        android:id="@+id/missionContent"
+        android:id="@+id/missiondrawer"
         android:layout_width="60dp"
         android:layout_height="85dp"
+        android:layout_marginTop="4dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toEndOf="@id/takeoffset"
-        app:layout_constraintHorizontal_bias="0.908"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/takeoffset"
-        app:layout_constraintVertical_bias="0.015">
-
-        <Button
-            android:id="@+id/stopMission"
-            android:layout_width="60dp"
-            android:layout_height="41dp"
-            android:onClick="btn_event"
-            android:text="임무중지"
-            android:textSize="4pt" />
-
-        <Button
-            android:id="@+id/endMission"
-            android:layout_width="60dp"
-            android:layout_height="41dp"
-            android:onClick="btn_event"
-            android:text="임무종료"
-            android:textSize="4pt" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/missiondrawer"
-        android:layout_width="79dp"
-        android:layout_height="244dp"
-        android:background="#FFFFFF"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toEndOf="@+id/map"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/map">
+        app:layout_constraintEnd_toStartOf="@+id/takeoffsetlist"
+        app:layout_constraintStart_toStartOf="@+id/mission"
+        app:layout_constraintTop_toBottomOf="@+id/mission">
 
         <Button
             android:id="@+id/nomission"
-            android:layout_width="70dp"
-            android:layout_height="51dp"
-            android:layout_margin="5dp"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:text="reset"
             android:onClick="btn_event"
-            android:text="clear"
-            android:textSize="5pt" />
+            android:textSize="4pt" />
 
         <Button
-            android:id="@+id/PolygonMission"
-            android:layout_width="70dp"
-            android:layout_height="51dp"
-            android:layout_margin="5dp"
+            android:id="@+id/custom"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:text="cust"
             android:onClick="btn_event"
-            android:text="다각형"
-            android:textSize="6pt" />
+            android:textSize="4pt" />
 
-        <Button
-            android:id="@+id/ABMission"
-            android:layout_width="70dp"
-            android:layout_height="51dp"
-            android:layout_margin="5dp"
-            android:onClick="btn_event"
-            android:text="AB"
-            android:textSize="7pt" />
-
-        <Button
-            android:id="@+id/PerformMission"
-            android:layout_width="72dp"
-            android:layout_height="51dp"
-            android:layout_margin="5dp"
-            android:onClick="btn_event"
-            android:text="임무수행"
-            android:textSize="5pt" />
     </LinearLayout>
+
+    <!--<TextureView
+        android:id="@+id/textureView"
+        android:layout_width="240dp"
+        android:layout_height="115dp"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.7"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintVertical_bias="0.04" />-->
+
 
 </android.support.constraint.ConstraintLayout>

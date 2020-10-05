@@ -15,8 +15,8 @@ public class LatLong implements Parcelable, Serializable {
     /**
      * Stores latitude, and longitude in degrees
      */
-    private double latitude;
-    private double longitude;
+    public double latitude;
+    public double longitude;
 
     public LatLong(double latitude, double longitude){
         this.latitude = latitude;
