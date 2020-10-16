@@ -154,12 +154,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1">
 
+        <Button
+            android:id="@+id/endmission"
+            android:layout_width="match_parent"
+            android:layout_height="41dp"
+            android:textSize="4pt"
+            android:text="임무종료"
+            />
 
         <Button
             android:id="@+id/startmission"
             android:layout_width="match_parent"
             android:layout_height="41dp"
-
             android:textSize="4pt"
             android:text="임무시작"
             />
@@ -167,7 +173,6 @@
             android:id="@+id/sendmission"
             android:layout_width="match_parent"
             android:layout_height="41dp"
-
             android:textSize="4pt"
             android:text="임무전송"
             />

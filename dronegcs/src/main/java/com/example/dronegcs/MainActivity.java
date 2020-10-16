@@ -9,61 +9,50 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-
 import android.graphics.Color;
-import android.graphics.PointF;
-import android.graphics.SurfaceTexture;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.MediaCodec;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.naver.maps.geometry.LatLng;
-import com.naver.maps.geometry.LatLngBounds;
-import com.naver.maps.map.CameraPosition;
 import com.naver.maps.map.CameraUpdate;
 import com.naver.maps.map.LocationSource;
 import com.naver.maps.map.LocationTrackingMode;
-import com.naver.maps.map.MapView;
+import com.naver.maps.map.MapFragment;
+import com.naver.maps.map.NaverMap;
+import com.naver.maps.map.OnMapReadyCallback;
 import com.naver.maps.map.UiSettings;
-import com.naver.maps.map.overlay.InfoWindow;
 import com.naver.maps.map.overlay.LocationOverlay;
-import com.naver.maps.map.overlay.Marker;
 import com.naver.maps.map.overlay.OverlayImage;
 import com.naver.maps.map.overlay.PathOverlay;
-import com.naver.maps.map.overlay.PolygonOverlay;
+import com.naver.maps.map.util.FusedLocationSource;
+import com.o3dr.android.client.ControlTower;
+import com.o3dr.android.client.Drone;
 import com.o3dr.android.client.apis.ControlApi;
 import com.o3dr.android.client.apis.MissionApi;
 import com.o3dr.android.client.apis.VehicleApi;
-import com.o3dr.android.client.apis.solo.SoloCameraApi;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.LinkListener;
 import com.o3dr.android.client.interfaces.TowerListener;
-import com.o3dr.android.client.utils.video.MediaCodecManager;
 import com.o3dr.services.android.lib.coordinate.LatLong;
 import com.o3dr.services.android.lib.coordinate.LatLongAlt;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -71,44 +60,26 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.companion.solo.SoloAttributes;
 import com.o3dr.services.android.lib.drone.companion.solo.SoloState;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
-import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.mission.Mission;
-import com.o3dr.services.android.lib.drone.mission.item.MissionItem;
-import com.o3dr.services.android.lib.drone.mission.item.command.YawCondition;
 import com.o3dr.services.android.lib.drone.mission.item.spatial.Waypoint;
 import com.o3dr.services.android.lib.drone.property.Altitude;
 import com.o3dr.services.android.lib.drone.property.Attitude;
 import com.o3dr.services.android.lib.drone.property.Battery;
 import com.o3dr.services.android.lib.drone.property.Gps;
-import com.o3dr.services.android.lib.drone.property.GuidedState;
-import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.Speed;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
-import com.naver.maps.map.MapFragment;
-import com.naver.maps.map.NaverMap;
-import com.naver.maps.map.OnMapReadyCallback;
-import com.naver.maps.map.NaverMapSdk;
-import com.naver.maps.map.util.FusedLocationSource;
-import com.o3dr.android.client.ControlTower;
-import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.gcs.link.LinkConnectionStatus;
 import com.o3dr.services.android.lib.model.AbstractCommandListener;
 import com.o3dr.services.android.lib.model.SimpleCommandListener;
-import com.o3dr.services.android.lib.util.MathUtils;
-
-import org.droidplanner.services.android.impl.core.helpers.geoTools.LineLatLong;
-import org.droidplanner.services.android.impl.core.polygon.Polygon;
-import org.droidplanner.services.android.impl.core.survey.grid.CircumscribedGrid;
-import org.droidplanner.services.android.impl.core.survey.grid.Trimmer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -147,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<String> alertlist = new ArrayList<>();
     private RecyclerView recyclerView;
     private SimpleTextAdapter adapter;
+    private  double cur_dronealitude;
 
     //polygon
     private boolean mission = false;
@@ -161,20 +133,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int capacity = 0;
     private double sprayAngle;
     private int missioncount=0;
+    private int isMission=0; //getplat 1016 ;;
 
     //Bluetooth
-    public BluetoothAdapter mBluetoothAdapter;
-    public Set<BluetoothDevice> mDevices;
-    private BluetoothSocket bSocket;
-    private OutputStream mOutputStream;
-    private InputStream mInputStream;
-    private BluetoothDevice mRemoteDevice;
-    public boolean onBT = false;
-    public byte[] sendByte = new byte[4];
-    public TextView tvBT;
-    public ProgressDialog asyncDialog;
-    private static final int REQUEST_ENABLE_BT = 1;
-    private Button BTButton;
+    TextView mTvBluetoothStatus;
+    TextView mTvReceiveData;
+    TextView mTvSendData;
+    Button mBtnBluetoothOn;
+    Button mBtnBluetoothOff;
+    Button mBtnConnect;
+    Button mBtnSendData;
+
+    BluetoothAdapter mBluetoothAdapter;
+    Set<BluetoothDevice> mPairedDevices;
+    List<String> mListPairedDevices;
+
+    Handler mBluetoothHandler;
+    //ConnectedBluetoothThread mThreadConnectedBluetooth;
+    BluetoothDevice mBluetoothDevice;
+    BluetoothSocket mBluetoothSocket;
+
+    final static int BT_REQUEST_ENABLE = 1;
+    final static int BT_MESSAGE_READ = 2;
+    final static int BT_CONNECTING_STATUS = 3;
+    final static UUID BT_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     @Nullable
     private LocationManager locationManager;
@@ -250,7 +232,58 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        BTButton = (Button)findViewById(R.id.btnBTCon);
+        //bluetooth
+//        mTvBluetoothStatus = (TextView)findViewById(R.id.tvBluetoothStatus);
+//        mTvReceiveData = (TextView)findViewById(R.id.tvReceiveData);
+//        mTvSendData =  (EditText) findViewById(R.id.tvSendData);
+//        mBtnBluetoothOn = (Button)findViewById(R.id.btnBluetoothOn);
+//        mBtnBluetoothOff = (Button)findViewById(R.id.btnBluetoothOff);
+//        mBtnConnect = (Button)findViewById(R.id.btnConnect);
+//        mBtnSendData = (Button)findViewById(R.id.btnSendData);
+
+//        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//
+//
+//        mBtnBluetoothOn.setOnClickListener(new Button.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                bluetoothOn();
+//            }
+//        });
+//        mBtnBluetoothOff.setOnClickListener(new Button.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                bluetoothOff();
+//            }
+//        });
+//        mBtnConnect.setOnClickListener(new Button.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                listPairedDevices();
+//            }
+//        });
+//        mBtnSendData.setOnClickListener(new Button.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if(mThreadConnectedBluetooth != null) {
+//                    mThreadConnectedBluetooth.write(mTvSendData.getText().toString());
+//                    mTvSendData.setText("");
+//                }
+//            }
+//        });
+//        mBluetoothHandler = new Handler(){
+//            public void handleMessage(android.os.Message msg){
+//                if(msg.what == BT_MESSAGE_READ){
+//                    String readMessage = null;
+//                    try {
+//                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+//                    mTvReceiveData.setText(readMessage);
+//                }
+//            }
+//        };
     }
 
     @Override
@@ -297,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     alertUser("need Marker");
             }
         });
+
         //임무 시작 버튼
         Button btnStartmission = (Button)findViewById(R.id.startmission);
         btnStartmission.setOnClickListener(new Button.OnClickListener(){
@@ -313,186 +347,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        //Bluetooth 활성 & 페어링 된 기기 검색
-        BTButton.setOnClickListener(new Button.OnClickListener() {
-            @SuppressLint("SetTextI18n")
+        //임무 종료 버튼
+        Button btnEndmission = (Button)findViewById(R.id.endmission);
+        btnEndmission.setOnClickListener(new Button.OnClickListener(){
             @Override
-            public void onClick(View view) {
-                if (!onBT) { //Connect
-                    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                    if (mBluetoothAdapter == null) { //장치가 블루투스를 지원하지 않는 경우.
-                        Toast.makeText(getApplicationContext(), "Bluetooth 지원을 하지 않는 기기입니다.", Toast.LENGTH_SHORT).show();
-                    } else { // 장치가 블루투스를 지원하는 경우.
-                        if (!mBluetoothAdapter.isEnabled()) {
-                            // 블루투스를 지원하지만 비활성 상태인 경우
-                            // 블루투스를 활성 상태로 바꾸기 위해 사용자 동의 요청
-                            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-                        } else {
-                            // 블루투스를 지원하며 활성 상태인 경우
-                            // 페어링된 기기 목록을 보여주고 연결할 장치를 선택.
-                            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-                            if (pairedDevices.size() > 0) {
-                                // 페어링 된 장치가 있는 경우.
-                                selectDevice();
-                            } else {
-                                // 페어링 된 장치가 없는 경우.
-                                Toast.makeText(getApplicationContext(), "먼저 Bluetooth 설정에 들어가 페어링을 진행해 주세요.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                }else{ //DisConnect
-                    try {
-                        BTSend.interrupt();   // 데이터 송신 쓰레드 종료
-                        mInputStream.close();
-                        mOutputStream.close();
-                        bSocket.close();
-                        onBT = false;
-                        BTButton.setText("connect");
-                    } catch(Exception ignored) { }
-
-                }
+            public void onClick(View view){
+                ChangeLandMode();
             }
         });
     }
     //======================================================================================<<블루투스 연결>>=============================================================================================
-    public void selectDevice() {
-        mDevices = mBluetoothAdapter.getBondedDevices();
-        final int mPairedDeviceCount = mDevices.size();
 
-        if (mPairedDeviceCount == 0) {
-            //  페어링 된 장치가 없는 경우
-            Toast.makeText(getApplicationContext(),"장치를 페어링 해주세요!",Toast.LENGTH_SHORT).show();
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("블루투스 장치 선택");
-
-
-        // 페어링 된 블루투스 장치의 이름 목록 작성
-        List<String> listItems = new ArrayList<>();
-        for(BluetoothDevice device : mDevices) {
-            listItems.add(device.getName());
-        }
-        listItems.add("취소");    // 취소 항목 추가
-
-        final CharSequence[] items = listItems.toArray(new CharSequence[listItems.size()]);
-
-        builder.setItems(items,new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int item) {
-                if(item == mPairedDeviceCount) {
-                    // 연결할 장치를 선택하지 않고 '취소'를 누른 경우
-                    //finish();
-                }
-                else {
-                    // 연결할 장치를 선택한 경우
-                    // 선택한 장치와 연결을 시도함
-                    connectToSelectedDevice(items[item].toString());
-                }
-            }
-        });
-
-        builder.setCancelable(false);    // 뒤로 가기 버튼 사용 금지
-        AlertDialog alert = builder.create();
-        alert.show();
-
-    }
-
-    public void connectToSelectedDevice(final String selectedDeviceName) {
-        mRemoteDevice = getDeviceFromBondedList(selectedDeviceName);
-
-        //Progress Dialog
-        asyncDialog = new ProgressDialog(MainActivity.this);
-        asyncDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        asyncDialog.setMessage("블루투스 연결중..");
-        asyncDialog.show();
-        asyncDialog.setCancelable(false);
-
-        Thread BTConnect = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"); //HC-06 UUID
-                    // 소켓 생성
-                    bSocket = mRemoteDevice.createRfcommSocketToServiceRecord(uuid);
-
-                    // RFCOMM 채널을 통한 연결
-                    bSocket.connect();
-
-                    // 데이터 송수신을 위한 스트림 열기
-                    mOutputStream = bSocket.getOutputStream();
-                    mInputStream = bSocket.getInputStream();
-
-                    runOnUiThread(new Runnable() {
-                        @SuppressLint({"ShowToast", "SetTextI18n"})
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(),selectedDeviceName + " 연결 완료",Toast.LENGTH_LONG).show();
-                            tvBT.setText(selectedDeviceName + " Connected");
-                            BTButton.setText("disconnect");
-                            asyncDialog.dismiss();
-                        }
-                    });
-                    onBT = true;
-                }catch(Exception e) {
-                    // 블루투스 연결 중 오류 발생
-                    runOnUiThread(new Runnable() {
-                        @SuppressLint({"ShowToast", "SetTextI18n"})
-                        @Override
-                        public void run() {
-                            tvBT.setText("연결 오류 -- BT 상태 확인해주세요.");
-                            asyncDialog.dismiss();
-                            Toast.makeText(getApplicationContext(),"블루투스 연결 오류",Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                }
-
-
-            }
-        });
-        BTConnect.start();
-    }
-
-    public BluetoothDevice getDeviceFromBondedList(String name) {
-        BluetoothDevice selectedDevice = null;
-
-        for(BluetoothDevice device : mDevices) {
-            if(name.equals(device.getName())) {
-                selectedDevice = device;
-                break;
-            }
-        }
-        return selectedDevice;
-    }
-
-    Thread BTSend  = new Thread(new Runnable() {
-        public void run() {
-            try {
-                mOutputStream.write(sendByte);    // 프로토콜 전송
-            } catch (Exception e) {
-                // 문자열 전송 도중 오류가 발생한 경우.
-            }
-        }
-    });
-
-    //fixme : 데이터 전송
-    public void sendbtData(int btLightPercent) throws IOException {
-        //sendBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        byte[] bytes = new byte[4];
-        bytes[0] = (byte) 0xa5;
-        bytes[1] = (byte) 0x5a;
-        bytes[2] = 1; //command
-        bytes[3] = (byte) btLightPercent;
-        sendByte = bytes;
-        BTSend.run();
-    }
     //======================================================================================<<자율주행 미션>>=============================================================================================
     //마커&좌표 넣기
     public void customMission(){
-        LatLong stationPointM = new LatLong(35.942268, 126.678938);   //스테이션 좌표
-        LatLong stationPoint1 = new LatLong(35.942160, 126.678924);
-        LatLong stationPoint2 = new LatLong(35.942147, 126.679024);
-        LatLong stationPoint3 = new LatLong(35.942242, 126.679056);
+        LatLong stationPointM = new LatLong(35.942233, 126.678938);   //스테이션 좌표
+        LatLong stationPoint1 = new LatLong(35.942176, 126.678936);
+        LatLong stationPoint2 = new LatLong(35.942172, 126.679010);
+        LatLong stationPoint3 = new LatLong(35.942239, 126.679018);
 
         polygonPointList.add(stationPointM); //좌표를 arrayList에 넣는다.
         polygonPointList.add(stationPoint1);
@@ -502,11 +374,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         manageOverlays.stationMarker();
 
         dronepath.setCoords(Arrays.asList(   //스테이션 경로
-                new LatLng(35.942268, 126.678938),
-                new LatLng(35.942160, 126.678924),
-                new LatLng(35.942147, 126.679024),
-                new LatLng(35.942242, 126.679056),
-                new LatLng(35.942268, 126.678938)
+                new LatLng(35.942233, 126.678938),
+                new LatLng(35.942176, 126.678936),
+                new LatLng(35.942172, 126.679010),
+                new LatLng(35.942239, 126.679018),
+                new LatLng(35.942233, 126.678938)
         ));
 
         dronepath.setPatternImage(OverlayImage.fromResource(R.drawable.arrow));
@@ -518,10 +390,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         dronepath.setMap(mymap);
 
-        alertUser("스테이션M 좌표:" + polygonPointList.get(0).getLatitude());
-        alertUser("스테이션1 좌표:" + polygonPointList.get(1).getLatitude());
-        alertUser("스테이션2 좌표:" + polygonPointList.get(2).getLatitude());
-        alertUser("스테이션3 좌표:" + polygonPointList.get(3).getLatitude());
+        alertUser("스테이션M 좌표:" + polygonPointList.get(0).getLatitude() + "  " + polygonPointList.get(0).getLongitude());
+        alertUser("스테이션1 좌표:" + polygonPointList.get(1).getLatitude() + "  " + polygonPointList.get(1).getLongitude());
+        alertUser("스테이션2 좌표:" + polygonPointList.get(2).getLatitude() + "  " + polygonPointList.get(2).getLongitude());
+        alertUser("스테이션3 좌표:" + polygonPointList.get(3).getLatitude() + "  " + polygonPointList.get(3).getLongitude());
     }
 
     //setmission
@@ -537,7 +409,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMission.addMissionItem(waypoint);
         }
         MissionApi.getApi(this.drone).setMission(mMission,true);
-        //MissionApi.getApi(this.drone).setMissionSpeed(0.5);
     }
 
     //startmission
@@ -546,6 +417,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onSuccess() {
                 alertUser("Auto 모드로 변경 중...");
+                isMission=1;
             }
 
 
@@ -583,60 +455,80 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //gettoplatform
     public void getPlat(){
+
         alertUser("getPlat 실행");
-
-//        Speed ltspeed =  this.drone.getAttribute(AttributeType.SPEED);
-//        ltspeed.setGroundSpeed(0.5);
-//        alertUser("하강 속도:" + ltspeed.getGroundSpeed() + "m/s");
-
-        ChangeGuideMode();
-        alertUser("Change to GuideMode");
-
-        ControlApi.getApi(this.drone).climbTo(3);
-        alertUser("approaching to the platform...");
-
+        isMission=2;
         try{
-            Thread.sleep(3000); //wait for onboard signal
-            ControlApi.getApi(this.drone).climbTo(dronealtitude);
-            alertUser("leaving...Platform");
+            ChangeGuideMode();
+            Thread.sleep(1000);
 
-            Thread.sleep(5000);
-            changetoAutomode();
-            alertUser("Change to AutoMode");
+            ControlApi.getApi(drone).climbTo(2);
+            alertUser("Landing to Platform");
+            //getplay 수정부분 ;; 1016
+            /*if(cur_dronealitude <= 2){
+                alertUser("이륙준비");
+                ControlApi.getApi(drone).climbTo(dronealtitude);
+                alertUser("leaving...Platform");
+                Thread.sleep(8000);
+                alertUser("다음 지점으로 이동");
+                changetoAutomode();
+                if(cur_dronealitude == 5.5){
 
+                }
+            }*/
         }catch(InterruptedException e){
             alertUser("sleep denied");
-            ControlApi.getApi(this.drone).climbTo(dronealtitude);
-
+            ControlApi.getApi(drone).climbTo(dronealtitude);
             changetoAutomode();
-            alertUser("Change to AutoMode");
+        }
     }
+
+    //========================================================================================<<드론 모드>>===========================================================================================
+    /* private void pauseMission() {
+            MissionApi.getApi(this.drone).pauseMission(null);
+        }*/
+
+    private void ChangeGuideMode() {
+        VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_GUIDED, new SimpleCommandListener() {
+            @Override
+            public void onSuccess() {
+                alertUser("Guide 모드로 변경 중...");
+
+            }
+
+            @Override
+            public void onError(int executionError) {
+                alertUser("Guide 모드 변경 실패 : " + executionError);
+            }
+
+            @Override
+            public void onTimeout() {
+                alertUser("Guide 모드 변경 실패");
+            }
+        });
     }
 /*
-    private void pauseMission() {
-        MissionApi.getApi(this.drone).pauseMission(null);
-    }*/
-
-private void ChangeGuideMode() {
-    VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_GUIDED, new SimpleCommandListener() {
-        @Override
-        public void onSuccess() {
-            alertUser("Guide 모드로 변경 중...");
-        }
-
-        @Override
-        public void onError(int executionError) {
-            alertUser("Guide 모드 변경 실패 : " + executionError);
-        }
-
-        @Override
-        public void onTimeout() {
-            alertUser("Guide 모드 변경 실패");
-        }
-    });
-}
     private void ChangeToLoiterMode() {
         VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LOITER, new SimpleCommandListener() {
+            @Override
+            public void onSuccess() {
+                alertUser("Loiter 모드로 변경 중...");
+            }
+
+            @Override
+            public void onError(int executionError) {
+                alertUser("Loiter 모드 변경 실패 : " + executionError);
+            }
+
+            @Override
+            public void onTimeout() {
+                alertUser("Loiter 모드 변경 실패");
+            }
+        });
+    }
+*/
+    private void ChangeLandMode() {
+        VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LAND, new SimpleCommandListener() {
             @Override
             public void onSuccess() {
                 alertUser("Loiter 모드로 변경 중...");
@@ -693,6 +585,20 @@ private void ChangeGuideMode() {
                 break;
             case AttributeEvent.ALTITUDE_UPDATED:
                 updateAltitude();
+                //getplat 수정 부분;;1016
+                VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
+                if(isMission==2){
+                    if(cur_dronealitude<=2.1){
+                        ControlApi.getApi(drone).climbTo(dronealtitude);
+                        alertUser("leaving...Platform");
+                    }
+                    else if(cur_dronealitude>=dronealtitude)
+                    {
+                        alertUser("다음 목적지 이동");
+                        changetoAutomode();
+                    }
+                }
+
                 break;
             case AttributeEvent.GPS_POSITION:
                 updatetrack();
@@ -711,7 +617,6 @@ private void ChangeGuideMode() {
                 alertUser("mission upload succ");
                 break;
             case AttributeEvent.MISSION_ITEM_REACHED:
-                alertUser("목표지점 도달 getPlat 실행 준비");
                 getPlat();
                 missioncount++;
                 alertUser("현재 missincount:" + missioncount);
@@ -1188,13 +1093,10 @@ private void ChangeGuideMode() {
 
 
     protected void updateAltitude() {
-
         TextView altitudeTextView = (TextView) findViewById(R.id.altitude);
         Altitude droneAltitude = this.drone.getAttribute(AttributeType.ALTITUDE);
         altitudeTextView.setText(String.format("%3.1f", droneAltitude.getAltitude()) + "m");
-
-
-
+        cur_dronealitude = droneAltitude.getAltitude();
     }
 
     protected void updateSpeed() {
