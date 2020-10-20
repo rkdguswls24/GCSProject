@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
@@ -158,24 +158,23 @@
             android:id="@+id/endmission"
             android:layout_width="match_parent"
             android:layout_height="41dp"
-            android:textSize="4pt"
             android:text="임무종료"
-            />
+            android:textSize="4pt" />
 
         <Button
             android:id="@+id/startmission"
             android:layout_width="match_parent"
             android:layout_height="41dp"
-            android:textSize="4pt"
             android:text="임무시작"
-            />
+            android:textSize="4pt" />
+
         <Button
             android:id="@+id/sendmission"
             android:layout_width="match_parent"
             android:layout_height="41dp"
-            android:textSize="4pt"
             android:text="임무전송"
-            />
+            android:textSize="4pt" />
+
         <Button
             android:id="@+id/land"
             android:layout_width="match_parent"
@@ -389,9 +388,9 @@
         app:layout_constraintVertical_bias="0.914" />
 
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="225dp"
         android:layout_height="98dp"
-        android:id="@+id/recycler_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.031"
@@ -403,9 +402,9 @@
         android:id="@+id/mission"
         android:layout_width="60dp"
         android:layout_height="41dp"
+        android:onClick="btn_event"
         android:text="임무"
         android:textSize="4pt"
-        android:onClick="btn_event"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/takeoffset"
         app:layout_constraintHorizontal_bias="1.0"
@@ -427,32 +426,63 @@
             android:id="@+id/nomission"
             android:layout_width="60dp"
             android:layout_height="41dp"
-            android:text="reset"
             android:onClick="btn_event"
+            android:text="reset"
             android:textSize="4pt" />
 
         <Button
             android:id="@+id/custom"
             android:layout_width="60dp"
             android:layout_height="41dp"
-            android:text="cust"
             android:onClick="btn_event"
+            android:text="cust"
             android:textSize="4pt" />
 
     </LinearLayout>
 
     <Button
-        android:id="@+id/btnBTCon"
-        android:layout_width="51dp"
-        android:layout_height="38dp"
+        android:id="@+id/btToggle"
+        android:layout_width="60dp"
+        android:layout_height="41dp"
         android:onClick="btn_event"
-        android:text="BTcon"
+        android:text="blue\ntooth"
+        android:textSize="4pt"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.976"
+        app:layout_constraintHorizontal_bias="0.797"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.812" />
+        app:layout_constraintVertical_bias="0.086" />
+
+    <LinearLayout
+        android:id="@+id/btdrawer"
+        android:layout_width="60dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="4dp"
+
+        android:orientation="vertical"
+        app:layout_constraintEnd_toStartOf="@+id/missiondrawer"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/map"
+        app:layout_constraintTop_toBottomOf="@+id/btToggle">
+
+        <Button
+            android:id="@+id/btConnect"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:onClick="btn_event"
+            android:text="연결"
+            android:textSize="5pt" />
+
+        <Button
+            android:id="@+id/btSend"
+            android:layout_width="60dp"
+            android:layout_height="41dp"
+            android:onClick="btn_event"
+            android:text="전송"
+            android:textSize="5pt" />
+
+    </LinearLayout>
 
 
 </android.support.constraint.ConstraintLayout>
