@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Bluetooth
     private BluetoothSPP bt;
     private String vaule;
+    ArrayList<Integer> btVaule = new ArrayList<Integer>();
 
     @Nullable
     private LocationManager locationManager;
@@ -227,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
 
                 vaule = message;
+               // btVaule.add(message);
             }
         });
 
@@ -614,7 +616,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         changetoAutomode();
                     }
                 }
-
                 break;
             case AttributeEvent.GPS_POSITION:
                 updatetrack();
@@ -634,8 +635,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case AttributeEvent.MISSION_ITEM_REACHED:
-                if(vaule.equals("Text")) {
-                    alertUser("블루투스 값:" + vaule);
+                if(vaule.equals("Text"))
+                {
+                    alertUser("블루투스 전달 값:" + vaule);
                     getPlat();
                 }
 
@@ -650,25 +652,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 /*
                 if(missioncount == 1)
                 {
-                    if(vaule(0).equals("people"))
+                    if(btVaule(0) == 1)
                     {
                         getPlat();
                     }
                 }else if(missincount == 2)
                 {
-                    if(vaule(1).equals("people"))
+                    if(btVaule(1) == 1)
                     {
                         getPlat();
                     }
                 }else if(missincount == 3)
                 {
-                    if(vaule(2).equals("people"))
+                    if(btVaule(2) == 1)
                     {
                         getPlat();
                     }
                 }else(missioncount==polygonPointList.size())
                 {
-                    if(vaule(3).equals("people"))
+                    if(btVaule(3) == 1)
                     {
                         getPlat();
                     }
