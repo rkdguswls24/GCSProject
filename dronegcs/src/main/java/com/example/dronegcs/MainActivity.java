@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.renderscript.Sampler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
@@ -132,8 +133,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //Bluetooth
     private BluetoothSPP bt;
-    private String vaule;
-    ArrayList<Integer> btVaule = new ArrayList<Integer>();
+    private String value;
+    private String subValue;
+    private String[] spValue;
+    private int intValue;
+    ArrayList<Integer> btValue = new ArrayList<Integer>();
 
     @Nullable
     private LocationManager locationManager;
@@ -227,8 +231,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
 
-                vaule = message;
-               // btVaule.add(message);
+                value = message;
+                subValue = value.substring(0,7);
+                spValue = subValue.split("/"); //배열
+
+               for(int i=0 ; 3<=i ;i++ ){
+                    intValue = Integer.parseInt(spValue[i]);
+                    btValue.add(intValue);
+                }
+
             }
         });
 
@@ -362,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button btSend = findViewById(R.id.btSend); //데이터 전송
         btSend.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                bt.send("좆빱아~", true);
+                bt.send("0/1/0/11013", true);
             }
         });
     }
@@ -375,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {
                 bt.setupService();
-                bt.startService(BluetoothState.DEVICE_ANDROID);
+                bt.startService(BluetoothState.DEVICE_ANDROID); //DEVICE_ANDROID는 안드로이드 끼리
                 setup();
             } else {
                 Toast.makeText(getApplicationContext()
@@ -489,7 +500,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ChangeGuideMode();
             Thread.sleep(1000);
 
-            ControlApi.getApi(drone).climbTo(1);
+            ControlApi.getApi(drone).climbTo(0);
             alertUser("Landing to Platform");
 
         }catch(InterruptedException e){
@@ -601,17 +612,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case AttributeEvent.ALTITUDE_UPDATED:
                 updateAltitude();
                 //getplat 수정 부분;;1016
- //               VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
-                if(isMission==2){
-                    if(cur_dronealitude<=1){
-                        try{ Thread.sleep(5000);}
-                        catch(InterruptedException e){ alertUser("sleep denied");}
+                //               VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
+                if (isMission == 2) {
+                    if (cur_dronealitude <= 0.3) {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            alertUser("sleep denied");
+                        }
 
                         ControlApi.getApi(drone).climbTo(dronealtitude);
                         alertUser("leaving...Platform");
-                    }
-                    else if(cur_dronealitude>=dronealtitude)
-                    {
+                    } else if (cur_dronealitude >= dronealtitude) {
                         alertUser("다음 목적지 이동");
                         changetoAutomode();
                     }
@@ -635,9 +647,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case AttributeEvent.MISSION_ITEM_REACHED:
-                if(vaule.equals("Text"))
+                /*   => 블루투스로 메시지를 받으면 목표지점들에서 getplat 실행
+                if(value.equals("Text"))
                 {
-                    alertUser("블루투스 전달 값:" + vaule);
+                    alertUser("블루투스 전달 값:" + value);
                     getPlat();
                 }
 
@@ -648,40 +661,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 {
                     missioncount = 0;
                     changetoAutomode();
-                }
-                /*
-                if(missioncount == 1)
-                {
-                    if(btVaule(0) == 1)
-                    {
-                        getPlat();
-                    }
-                }else if(missincount == 2)
-                {
-                    if(btVaule(1) == 1)
-                    {
-                        getPlat();
-                    }
-                }else if(missincount == 3)
-                {
-                    if(btVaule(2) == 1)
-                    {
-                        getPlat();
-                    }
-                }else(missioncount==polygonPointList.size())
-                {
-                    if(btVaule(3) == 1)
-                    {
-                        getPlat();
-                    }
+                }*/
 
-                    if(isMission == 1)
-                    {
+                missioncount++;
+                alertUser("현재 missincount:" + missioncount);
+
+                if (missioncount == 1) {
+                    if (btValue.get(0) == 1) {
+                        getPlat();
+                    }
+                } else if (missioncount == 2) {
+                    if (btValue.get(1) == 1) {
+                        getPlat();
+                    }
+                } else if (missioncount == 3) {
+                    if (btValue.get(2) == 1) {
+                        getPlat();
+                    }
+                } else if (missioncount == polygonPointList.size()) {
+                    if (btValue.get(3) == 1) {
+                        getPlat();
+                        missioncount = 0;
+                    }else {
                         missioncount = 0;
                         changetoAutomode();
+
                     }
                 }
-                */
+
             case AttributeEvent.MISSION_UPDATED:
                 break;
 
@@ -769,6 +776,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 polygonPointList.clear();
                 dronepath.setMap(null);
                 missiondrawlist.setVisibility(View.INVISIBLE);
+
                 break;
             case R.id.custom:
                 customMission();
