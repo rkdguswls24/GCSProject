@@ -119,15 +119,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //mission
     private boolean mission = false;
     public ArrayList<LatLong> polygonPointList = new ArrayList<LatLong>();
-    public ArrayList<LatLong> sprayPointList = new ArrayList<>();
     private MainActivity mainActivity;
     private ManageOverlay manageOverlays;
-    private LatLong pointA = null;
-    private LatLong pointB = null;
-    private double sprayDistance = 5.5f;
-    private int maxSprayDistance = 50;
-    private int capacity = 0;
-    private double sprayAngle;
     private int missioncount=0;
     private int isMission=0; //getplat 1016 ;;
 
@@ -411,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         manageOverlays.stationMarker();
 
-        dronepath.setCoords(Arrays.asList(   //스테이션 경로
+        dronepath.setCoords(Arrays.asList(   //스테이션 경로 좌표지정
                 new LatLng(35.942233, 126.678938),
                 new LatLng(35.942176, 126.678936),
                 new LatLng(35.942172, 126.679010),
@@ -470,25 +463,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
+
     //stop mission
     public void abortmission(){
         MissionApi.getApi(this.drone).pauseMission(null);
-        VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LOITER,new SimpleCommandListener(){
-            @Override
-            public void onSuccess(){
-                alertUser("Loiter mode");
-
-            }
-            @Override
-            public void onError(int executionError) {
-                alertUser("Loiter 실패 : " + executionError);
-            }
-
-            @Override
-            public void onTimeout() {
-                alertUser("Loiter 모드 변경 실패.");
-            }
-        });
+        ChangeToLoiterMode();
     }
 
     //gettoplatform
@@ -511,10 +490,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     //========================================================================================<<드론 모드>>===========================================================================================
-    /* private void pauseMission() {
-            MissionApi.getApi(this.drone).pauseMission(null);
-        }*/
-
     private void ChangeGuideMode() {
         VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_GUIDED, new SimpleCommandListener() {
             @Override
@@ -534,7 +509,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-/*
+
     private void ChangeToLoiterMode() {
         VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LOITER, new SimpleCommandListener() {
             @Override
@@ -553,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-*/
+
     private void ChangeLandMode() {
         VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LAND, new SimpleCommandListener() {
             @Override
@@ -667,26 +642,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 alertUser("현재 missincount:" + missioncount);
 
                 if (missioncount == 1) {
+
+                    alertUser("탑승 유무:" + btValue.get(0));
+
                     if (btValue.get(0) == 1) {
                         getPlat();
                     }
+
                 } else if (missioncount == 2) {
+
+                    alertUser("탑승 유무:" + btValue.get(1));
+
                     if (btValue.get(1) == 1) {
                         getPlat();
                     }
+
                 } else if (missioncount == 3) {
+
+                    alertUser("탑승 유무:" + btValue.get(2));
+
                     if (btValue.get(2) == 1) {
                         getPlat();
                     }
+
                 } else if (missioncount == polygonPointList.size()) {
+
+                    alertUser("탑승 유무:" + btValue.get(3));
+
                     if (btValue.get(3) == 1) {
                         getPlat();
-                        missioncount = 0;
-                    }else {
-                        missioncount = 0;
-                        changetoAutomode();
-
                     }
+
+                    missioncount = 0;
+                    changetoAutomode();
+
                 }
 
             case AttributeEvent.MISSION_UPDATED:
@@ -790,7 +779,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     btdrawlist.setVisibility(View.INVISIBLE);
         }
     }
-    //=============================================================================================<<Helper>>>>=====================================================================================================
+    //=========================================================================================<<Helper function>>>>=====================================================================================================
     public void resetMarker(){
         manageOverlays.reset();
     }
@@ -804,167 +793,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         recyclerView.scrollToPosition(alertlist.size()-1);
     }
 
-    public void onLandButtonTap(){
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-
-        if (vehicleState.isFlying()) {
-            // Land
-            VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LAND, new SimpleCommandListener() {
-                @Override
-                public void onError(int executionError) {
-                    alertUser("Unable to land the vehicle.");
-                }
-
-                @Override
-                public void onTimeout() {
-                    alertUser("Unable to land the vehicle.");
-                }
-            });
-        }
-    }
-
-    public void takeoffsetTap(){
-
-        altitudeset = !altitudeset;
-        if(altitudeset)
-        {
-            setlist.setVisibility(View.VISIBLE);
-        }
-        else
-            setlist.setVisibility(View.INVISIBLE);
-    }
-    public void onAsecTap(){
-
-        if(dronealtitude<10){
-            dronealtitude += 0.5;
-            takeoffsetbtn.setText("이륙고도"+dronealtitude);
-        }
-    }
-    public void onDescTap(){
-
-        if(dronealtitude>3){
-            dronealtitude -= 0.5;
-            takeoffsetbtn.setText("이륙고도"+dronealtitude);
-        }
-
-    }
-    public void alertMessage(){
-        Drone mydrone = this.drone;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("arming alert");
-        builder.setMessage("모터를 가동합니다");
-        builder.setPositiveButton("확인", new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int id)
-            {
-                VehicleApi.getApi(mydrone).arm(true, false, new SimpleCommandListener() {
-                    @Override
-                    public void onError(int executionError) {
-                        alertUser("Unable to arm vehicle.");
-                    }
-
-                    @Override
-                    public void onTimeout() {
-                        alertUser("Arming operation timed out.");
-                    }
-                });
-            }
-        });
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int i) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-    public void takeoffAlert(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        Drone mydrone = this.drone;
-        builder.setTitle("takeoff alert");
-        builder.setMessage("기체가 상승합니다 안전거리 유지 바랍니다.");
-        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                ControlApi.getApi(mydrone).takeoff(dronealtitude,new AbstractCommandListener(){
-                    @Override
-                    public void onSuccess() {
-                        alertUser("Taking off...");
-                    }
-
-                    @Override
-                    public void onError(int i) {
-                        alertUser("Unable to take off.");
-                    }
-
-                    @Override
-                    public void onTimeout() {
-                        alertUser("Unable to take off.");
-                    }
-                });
-            }
-        });
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-
-            }
-        });
-
-        AlertDialog alertdialog = builder.create();
-        alertdialog.show();
-    }
-    public void onArmButtonTap() {
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-
-        if (vehicleState.isArmed()) {
-            // Take off
-            takeoffAlert();
-
-        } else if (!vehicleState.isConnected()) {
-            // Connect
-            alertUser("Connect to a drone first");
-        } else {
-            alertMessage();
-            // Connected but not Armed
-
-        }
-    }
-
-    private void checkSoloState() {
-        final SoloState soloState = drone.getAttribute(SoloAttributes.SOLO_STATE);
-        if (soloState == null) {
-            alertUser("Unable to retrieve the solo state.");
-        } else {
-            alertUser("Solo state is up to date.");
-        }
-    }
-    public void onFlightModeSelected(View view) {
-        VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
-
-        VehicleApi.getApi(this.drone).setVehicleMode(vehicleMode, new AbstractCommandListener() {
-            @Override
-            public void onSuccess() {
-                alertUser("Vehicle mode change successful.");
-            }
-
-            @Override
-            public void onError(int executionError) {
-                alertUser("Vehicle mode change failed: " + executionError);
-            }
-
-            @Override
-            public void onTimeout() {
-                alertUser("Vehicle mode change timed out.");
-            }
-        });
-    }
-
     protected void updatetrack(){
         try{
-
             Gps dronegps = this.drone.getAttribute(AttributeType.GPS);
             LatLng droneposition = new LatLng(dronegps.getPosition().getLatitude(),dronegps.getPosition().getLongitude());
 
@@ -987,95 +817,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mymap.moveCamera(CameraUpdate.scrollTo(new LatLng(35.945378,126.682110)));
 
         }
-        //
-        //mymap.setLocationTrackingMode(LocationTrackingMode.Follow);
     }
-    protected void updateNumberOfSatellites() {
-        TextView numberOfSatellitesTextView = (TextView)findViewById(R.id.satenum);
-        Gps droneNumberOfSatellites = this.drone.getAttribute(AttributeType.GPS);
+    //==========================================================================================<<UI Button>>>>=====================================================================================================
+    public void takeoffsetTap(){
 
-        numberOfSatellitesTextView.setText(String.format("%d", droneNumberOfSatellites.getSatellitesCount()));
-    }
-    protected void updateVehicleModesForType(int droneType) {
-
-        List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
-        ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(this, android.R.layout.simple_spinner_item, vehicleModes);
-        vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        this.modeSelector.setAdapter(vehicleModeArrayAdapter);
-    }
-
-    protected void updateVehicleMode() {
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-        VehicleMode vehicleMode = vehicleState.getVehicleMode();
-        ArrayAdapter arrayAdapter = (ArrayAdapter) this.modeSelector.getAdapter();
-        this.modeSelector.setSelection(arrayAdapter.getPosition(vehicleMode));
-    }
-
-    @Override
-    public void onDroneServiceInterrupted(String errorMsg) {
-
-    }
-
-    protected void updateArmButton() {
-        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
-        Button armButton = (Button) findViewById(R.id.arm);
-
-        if (!this.drone.isConnected()) {
-            armingbtn.setVisibility(View.INVISIBLE);
-        } else {
-            armingbtn.setVisibility(View.VISIBLE);
+        altitudeset = !altitudeset;
+        if(altitudeset)
+        {
+            setlist.setVisibility(View.VISIBLE);
         }
+        else
+            setlist.setVisibility(View.INVISIBLE);
+    }
 
+    public void onAsecTap(){
 
-        if (vehicleState.isArmed()) {
-            // Take off
-
-            armButton.setText("TAKE-OFF");
-
-        } else if (vehicleState.isConnected()) {
-            // Connected but not Armed
-            armButton.setText("ARM");
+        if(dronealtitude<10){
+            dronealtitude += 0.5;
+            takeoffsetbtn.setText("이륙고도"+dronealtitude);
         }
     }
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//        this.controlTower.connect((TowerListener) this);
-//    }
+    public void onDescTap(){
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (this.drone.isConnected()) {
-            this.drone.disconnect();
-            updateConnectedButton(false);
-        }
-
-        this.controlTower.unregisterDrone(this.drone);
-        this.controlTower.disconnect();
-
-    }
-
-    protected void updateConnectedButton(Boolean isConnected) {
-        Button connectButton = (Button) findViewById(R.id.connect);
-        if (isConnected) {
-            connectButton.setText("Disco");
-            connectDrone = false;
-            armingbtn.setVisibility(View.INVISIBLE);
-        } else {
-            connectButton.setText("Conn");
-            connectDrone = true;
-            armingbtn.setVisibility(View.VISIBLE);
-        }
-    }
-
-    public void onBtnConnectTap() {
-        if (this.drone.isConnected()) {
-            this.drone.disconnect();
-        } else {
-            ConnectionParameter connectionParams = ConnectionParameter.newUdpConnection(null);
-            this.drone.connect(connectionParams);
+        if(dronealtitude>3){
+            dronealtitude -= 0.5;
+            takeoffsetbtn.setText("이륙고도"+dronealtitude);
         }
 
     }
@@ -1160,7 +927,193 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             list.setVisibility(View.INVISIBLE);
         }
     }
+    //=======================================================================================<<기체 동작 관련>>=================================================================================================
+    private void checkSoloState() {
+        final SoloState soloState = drone.getAttribute(SoloAttributes.SOLO_STATE);
+        if (soloState == null) {
+            alertUser("Unable to retrieve the solo state.");
+        } else {
+            alertUser("Solo state is up to date.");
+        }
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (this.drone.isConnected()) {
+            this.drone.disconnect();
+            updateConnectedButton(false);
+        }
+
+        this.controlTower.unregisterDrone(this.drone);
+        this.controlTower.disconnect();
+
+    }
+
+    protected void updateConnectedButton(Boolean isConnected) {
+        Button connectButton = (Button) findViewById(R.id.connect);
+        if (isConnected) {
+            connectButton.setText("Disco");
+            connectDrone = false;
+            armingbtn.setVisibility(View.INVISIBLE);
+        } else {
+            connectButton.setText("Conn");
+            connectDrone = true;
+            armingbtn.setVisibility(View.VISIBLE);
+        }
+    }
+    public void onBtnConnectTap() {
+        if (this.drone.isConnected()) {
+            this.drone.disconnect();
+        } else {
+            ConnectionParameter connectionParams = ConnectionParameter.newUdpConnection(null);
+            this.drone.connect(connectionParams);
+        }
+
+    }
+
+    protected void updateArmButton() {
+        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
+        Button armButton = (Button) findViewById(R.id.arm);
+
+        if (!this.drone.isConnected()) {
+            armingbtn.setVisibility(View.INVISIBLE);
+        } else {
+            armingbtn.setVisibility(View.VISIBLE);
+        }
+
+
+        if (vehicleState.isArmed()) {
+            // Take off
+
+            armButton.setText("TAKE-OFF");
+
+        } else if (vehicleState.isConnected()) {
+            // Connected but not Armed
+            armButton.setText("ARM");
+        }
+    }
+
+    public void onArmButtonTap() {
+        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
+
+        if (vehicleState.isArmed()) {
+            // Take off
+            takeoffAlert();
+
+        } else if (!vehicleState.isConnected()) {
+            // Connect
+            alertUser("Connect to a drone first");
+        } else {
+            alertMessage();
+            // Connected but not Armed
+
+        }
+    }
+
+    public void alertMessage(){
+        Drone mydrone = this.drone;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("arming alert");
+        builder.setMessage("모터를 가동합니다");
+        builder.setPositiveButton("확인", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int id)
+            {
+                VehicleApi.getApi(mydrone).arm(true, false, new SimpleCommandListener() {
+                    @Override
+                    public void onError(int executionError) {
+                        alertUser("Unable to arm vehicle.");
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        alertUser("Arming operation timed out.");
+                    }
+                });
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int i) {
+                dialog.cancel();
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    public void takeoffAlert(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        Drone mydrone = this.drone;
+        builder.setTitle("takeoff alert");
+        builder.setMessage("기체가 상승합니다 안전거리 유지 바랍니다.");
+        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                ControlApi.getApi(mydrone).takeoff(dronealtitude,new AbstractCommandListener(){
+                    @Override
+                    public void onSuccess() {
+                        alertUser("Taking off...");
+                    }
+
+                    @Override
+                    public void onError(int i) {
+                        alertUser("Unable to take off.");
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        alertUser("Unable to take off.");
+                    }
+                });
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+
+            }
+        });
+
+        AlertDialog alertdialog = builder.create();
+        alertdialog.show();
+    }
+
+    public void onLandButtonTap(){
+        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
+
+        if (vehicleState.isFlying()) {
+            // Land
+            VehicleApi.getApi(this.drone).setVehicleMode(VehicleMode.COPTER_LAND, new SimpleCommandListener() {
+                @Override
+                public void onError(int executionError) {
+                    alertUser("Unable to land the vehicle.");
+                }
+
+                @Override
+                public void onTimeout() {
+                    alertUser("Unable to land the vehicle.");
+                }
+            });
+        }
+    }
+
+    //=======================================================================================<<기체 상태>>=================================================================================================
+    protected void updateVehicleMode() {
+        State vehicleState = this.drone.getAttribute(AttributeType.STATE);
+        VehicleMode vehicleMode = vehicleState.getVehicleMode();
+        ArrayAdapter arrayAdapter = (ArrayAdapter) this.modeSelector.getAdapter();
+        this.modeSelector.setSelection(arrayAdapter.getPosition(vehicleMode));
+    }
+
+    protected void updateNumberOfSatellites() {
+        TextView numberOfSatellitesTextView = (TextView)findViewById(R.id.satenum);
+        Gps droneNumberOfSatellites = this.drone.getAttribute(AttributeType.GPS);
+
+        numberOfSatellitesTextView.setText(String.format("%d", droneNumberOfSatellites.getSatellitesCount()));
+    }
 
     protected void updateAltitude() {
         TextView altitudeTextView = (TextView) findViewById(R.id.altitude);
@@ -1196,6 +1149,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationOverlay.setBearing((float) droneyaw.getYaw());
     }
 
+    public void onFlightModeSelected(View view) {
+        VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
+
+        VehicleApi.getApi(this.drone).setVehicleMode(vehicleMode, new AbstractCommandListener() {
+            @Override
+            public void onSuccess() {
+                alertUser("Vehicle mode change successful.");
+            }
+
+            @Override
+            public void onError(int executionError) {
+                alertUser("Vehicle mode change failed: " + executionError);
+            }
+
+            @Override
+            public void onTimeout() {
+                alertUser("Vehicle mode change timed out.");
+            }
+        });
+    }
+
+    @Override
+    public void onTowerConnected() {
+        alertUser("DroneKit-Android Connected");
+        this.controlTower.registerDrone(this.drone, this.handler);
+        this.drone.registerDroneListener(this);
+    }
+
+    @Override
+    public void onTowerDisconnected() {
+        alertUser("DroneKit-Android Interrupted");
+    }
+
+    @Override
+    public void onDroneServiceInterrupted(String errorMsg) {
+
+    }
+
     @Override
     public void onLinkStateUpdated(@NonNull LinkConnectionStatus connectionStatus) {
         switch(connectionStatus.getStatusCode()){
@@ -1210,17 +1201,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
-    public void onTowerConnected() {
-        alertUser("DroneKit-Android Connected");
-        this.controlTower.registerDrone(this.drone, this.handler);
-        this.drone.registerDroneListener(this);
+    protected void updateVehicleModesForType(int droneType) {
+
+        List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
+        ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(this, android.R.layout.simple_spinner_item, vehicleModes);
+        vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        this.modeSelector.setAdapter(vehicleModeArrayAdapter);
     }
 
-    @Override
-    public void onTowerDisconnected() {
-        alertUser("DroneKit-Android Interrupted");
-    }
 
 }
 
