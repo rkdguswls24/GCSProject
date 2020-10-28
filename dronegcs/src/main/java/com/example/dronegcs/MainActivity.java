@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Bluetooth
     private BluetoothSPP bt;
     private String value;
-    private String subValue;
     private String[] spValue;
     private int intValue;
     ArrayList<Integer> btValue = new ArrayList<Integer>();
@@ -225,10 +224,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
 
                 value = message;
-                subValue = value.substring(0,7);
-                spValue = subValue.split("/"); //배열
+                spValue = value.split("/"); //배열
 
-               for(int i=0 ; 3<=i ;i++ ){
+               for(int i=0 ; i<=3 ;i++ ){
                     intValue = Integer.parseInt(spValue[i]);
                     btValue.add(intValue);
                 }
@@ -356,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             if (!bt.isServiceAvailable()) {
                 bt.setupService();
-                bt.startService(BluetoothState.DEVICE_ANDROID); //DEVICE_ANDROID는 안드로이드 기기 끼리
+                bt.startService(BluetoothState.DEVICE_OTHER); //DEVICE_ANDROID는 안드로이드 기기 끼리
                 setup();
             }
         }
@@ -379,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {
                 bt.setupService();
-                bt.startService(BluetoothState.DEVICE_ANDROID); //DEVICE_ANDROID는 안드로이드 끼리
+                bt.startService(BluetoothState.DEVICE_OTHER); //DEVICE_ANDROID는 안드로이드 끼리
                 setup();
             } else {
                 Toast.makeText(getApplicationContext()
@@ -392,10 +390,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //======================================================================================<<자율주행 미션>>=============================================================================================
     //마커&좌표 넣기
     public void customMission(){
-        LatLong stationPointM = new LatLong(35.942233, 126.678938);   //스테이션 좌표
-        LatLong stationPoint1 = new LatLong(35.942176, 126.678936);
-        LatLong stationPoint2 = new LatLong(35.942172, 126.679010);
-        LatLong stationPoint3 = new LatLong(35.942239, 126.679018);
+        LatLong stationPointM = new LatLong(35.943531, 126.684256);   //스테이션 좌표
+        LatLong stationPoint1 = new LatLong(35.943629, 126.684256);
+        LatLong stationPoint2 = new LatLong(35.943629, 126.684497);
+        LatLong stationPoint3 = new LatLong(35.943531, 126.684497);
 
         polygonPointList.add(stationPointM); //좌표를 arrayList에 넣는다.
         polygonPointList.add(stationPoint1);
@@ -405,11 +403,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         manageOverlays.stationMarker();
 
         dronepath.setCoords(Arrays.asList(   //스테이션 경로 좌표지정
-                new LatLng(35.942233, 126.678938),
-                new LatLng(35.942176, 126.678936),
-                new LatLng(35.942172, 126.679010),
-                new LatLng(35.942239, 126.679018),
-                new LatLng(35.942233, 126.678938)
+                new LatLng(35.943531, 126.684256),
+                new LatLng(35.943629, 126.684256),
+                new LatLng(35.943629, 126.684497),
+                new LatLng(35.943531, 126.684497),
+                new LatLng(35.943531, 126.684256)
         ));
 
         dronepath.setPatternImage(OverlayImage.fromResource(R.drawable.arrow));
@@ -586,8 +584,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case AttributeEvent.ALTITUDE_UPDATED:
                 updateAltitude();
-                //getplat 수정 부분;;1016
-                //               VehicleMode vehicleMode = (VehicleMode) this.modeSelector.getSelectedItem();
+
                 if (isMission == 2) {
                     if (cur_dronealitude <= 0.3) {
                         try {

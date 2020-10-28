@@ -30,10 +30,10 @@ public class ManageOverlay {
 
     }
     public void stationMarker(){
-        stationMarkerM.setPosition(new LatLng(35.942233, 126.678938));  //스테이션 Marker
-        stationMarker1.setPosition(new LatLng(35.942176, 126.678936));
-        stationMarker2.setPosition(new LatLng(35.942172, 126.679010));
-        stationMarker3.setPosition(new LatLng(35.942239, 126.679018));
+        stationMarkerM.setPosition(new LatLng(35.943531, 126.684256));  //스테이션 Marker
+        stationMarker1.setPosition(new LatLng(35.943629, 126.684256));
+        stationMarker2.setPosition(new LatLng(35.943629, 126.684497));
+        stationMarker3.setPosition(new LatLng(35.943531, 126.684497));
 
         stationMarkerM.setIcon(OverlayImage.fromResource(R.drawable.station));            //오버레이는 하나만 가능, 여러개 일시 마지막 코드만 실행
         stationMarker1.setIcon(OverlayImage.fromResource(R.drawable.stop));
