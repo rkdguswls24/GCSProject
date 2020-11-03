@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             if (!bt.isServiceAvailable()) {
                 bt.setupService();
-                bt.startService(BluetoothState.DEVICE_OTHER); //DEVICE_ANDROID는 안드로이드 기기 끼리
+                bt.startService(BluetoothState.DEVICE_ANDROID); //DEVICE_ANDROID는 안드로이드 기기 끼리
                 setup();
             }
         }
@@ -364,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button btSend = findViewById(R.id.btSend); //데이터 전송
         btSend.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                bt.send("0/1/0/11013", true);
+                bt.send("0/1/0/1", true);
             }
         });
     }
@@ -620,18 +620,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             case AttributeEvent.MISSION_ITEM_REACHED:
                 /*   => 블루투스로 메시지를 받으면 목표지점들에서 getplat 실행
-                if(value.equals("Text"))
-                {
-                    alertUser("블루투스 전달 값:" + value);
-                    getPlat();
-                }
-
                 missioncount++;
                 alertUser("현재 missincount:" + missioncount);
 
+                if(missioncount == 2)
+                {
+                    alertUser("탑승유무:"+btValue.get(1));
+                    getPlat();
+                }
+
                 if(missioncount==polygonPointList.size())
                 {
+                    alertUser("탑승유무:"+btValue.get(3));
                     missioncount = 0;
+                    getPlat();
                     changetoAutomode();
                 }*/
 
@@ -663,15 +665,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                 } else if (missioncount == polygonPointList.size()) {
+                    missioncount = 0;
 
                     alertUser("탑승 유무:" + btValue.get(3));
 
                     if (btValue.get(3) == 1) {
                         getPlat();
-                    }
-
-                    missioncount = 0;
+                    }else{
                     changetoAutomode();
+                    }
 
                 }
 
